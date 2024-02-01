@@ -2,9 +2,7 @@ pipeline {
     agent any
     stages {
         stage('Checkout') {
-            steps {
-                git 'https://github.com/itkan/node-web-service.git'
-            }
+            git url: 'https://github.com/itkan/node-web-service.git'
         }
         stage('Build') {
             steps {
@@ -14,15 +12,17 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build('your/docker-image:latest')
+                    docker.build('itkan/node-web-service:latest')
                 }
             }
         }
         stage('Push Docker Image') {
             steps {
-                script {
-                    docker.withRegistry('https://your-docker-registry.com', 'your-docker-credentials') {
-                        docker.image('your/docker-image:latest').push('latest')
+                withCredentials([usernamePassword(credentialsId: '9e191ea4-ca75-43e5-9922-6b2a4cdb9556', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    script {
+                        docker.withRegistry('https://hub.docker.com', '9e191ea4-ca75-43e5-9922-6b2a4cdb9556') {
+                            docker.image('itkan/node-web-service:latest').push('latest')
+                        }
                     }
                 }
             }
