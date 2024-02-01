@@ -1,0 +1,33 @@
+# Dependency directories
+/node_modules
+
+# Logs
+logs
+*.log
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Editor-specific files
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Jest coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Yarn Integrity file
+.yarn-integrity
+
+# npm cache directory
+.npm
+
+# TypeScript build output
+dist/
