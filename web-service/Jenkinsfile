@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_HOST = 'tcp://host.docker.internal:2376'
+        EMPLOYEE_DATABASE_HOST = 'localhost'
+        EMPLOYEE_DATABASE_PORT = '5432'
+        EMPLOYEE_DATABASE_NAME = 'employees'
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '1'))
+        disableConcurrentBuilds()
+
+    }
+    stages {
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker rmi -f localhost:5000/node-web-service:latest || true"
+                    docker.build('localhost:5000/node-web-service:latest', './web-service')
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('http://localhost:5000') {
+                        docker.image('localhost:5000/node-web-service:latest').push('latest')
+                    }
+                }
+            }
+        }
+        stage('Deploy to Docker') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'postgres-credentials', usernameVariable: 'EMPLOYEE_DATABASE_USERNAME', passwordVariable: 'EMPLOYEE_DATABASE_PASSWORD')]) {
+                        sh "docker rm -f node-web-service || true"
+                        sh "docker run -d -p 3000:3000 \
+                            -e EMPLOYEE_DATABASE_USERNAME=${EMPLOYEE_DATABASE_USERNAME} \
+                            -e EMPLOYEE_DATABASE_PASSWORD=${EMPLOYEE_DATABASE_PASSWORD} \
+                            -e EMPLOYEE_DATABASE_HOST=${EMPLOYEE_DATABASE_HOST} \
+                            -e EMPLOYEE_DATABASE_PORT=${EMPLOYEE_DATABASE_PORT} \
+                            -e EMPLOYEE_DATABASE_NAME=${EMPLOYEE_DATABASE_NAME} \
+                            --name node-web-service localhost:5000/node-web-service:latest"
+                    }
+                }
+            }
+        }
+    }
+}

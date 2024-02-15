@@ -1,0 +1,7 @@
+git
+job-dsl
+workflow-aggregator
+pipeline-stage-view
+docker-plugin
+docker-workflow
+kubernetes
